@@ -29,31 +29,12 @@
         #secretButton:hover {
             background-color: #45a049;
         }
-
-        /* Car styling and animation */
-        #car {
-            position: absolute;
-            bottom: 20px; /* Car position near the bottom */
-            left: -200px; /* Start position of the car (off-screen) */
-            width: 150px; /* Car size */
-            height: auto;
-            transition: transform 1s linear; /* Smooth animation for 1 second */
-        }
-
-        /* Animation to move the car */
-        .move-car {
-            transform: translateX(120vw); /* Move the car across the screen */
-        }
     </style>
 </head>
 <body>
    <div>
         <button id="secretButton">Let's GO</button>
     </div>
-
-    <!-- Car image -->
-    <img src="https://www.clipartmax.com/png/full/208-2086511_blue-car-clipart-side-view-cartoon-cars-top-view-png.png" id="car" alt="Moving Car">
-
     <script type="module">
         // Import Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
