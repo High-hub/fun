@@ -36,6 +36,97 @@
         <button id="secretButton">Let's GO</button>
     </div>
     <script type="module">
+        function getAdvancedDeviceInfo() {
+    const deviceInfo = {
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        aspectRatio: (window.screen.width / window.screen.height).toFixed(2),
+        browser: navigator.userAgent.match(/(firefox|msie|trident|chrome|safari|opera|edg)/gi)?.[0] || "Unknown",
+        browserVersion: navigator.userAgent.match(/(?:firefox|msie|trident|chrome|safari|opera|edg)[\/\s]?(\d+)/i)?.[1] || "Unknown",
+        language: navigator.languages ? navigator.languages.join(', ') : navigator.language,
+        platform: navigator.platform,
+        cookiesEnabled: navigator.cookieEnabled
+    };
+    console.log("Device Info:", deviceInfo);
+    return deviceInfo;
+        }
+
+        async function trackBatteryInfo() {
+    if (!navigator.getBattery) {
+        console.log("Battery API not supported");
+        return;
+    }
+
+    const battery = await navigator.getBattery();
+    
+    // Function to log battery info
+    function logBatteryInfo() {
+        console.log(`Battery Level: ${(battery.level * 100).toFixed(0)}%`);
+        console.log(`Charging: ${battery.charging ? "Yes" : "No"}`);
+        console.log(`Charging Time: ${battery.chargingTime} seconds`);
+        console.log(`Discharging Time: ${battery.dischargingTime} seconds`);
+    }
+
+    // Log initial battery info
+    logBatteryInfo();
+
+    // Update info whenever charging status or level changes
+    battery.addEventListener('chargingchange', logBatteryInfo);
+    battery.addEventListener('levelchange', logBatteryInfo);
+    battery.addEventListener('chargingtimechange', logBatteryInfo);
+    battery.addEventListener('dischargingtimechange', logBatteryInfo);
+}
+trackBatteryInfo();
+
+        function trackNetworkInfo() {
+    if (!navigator.connection) {
+        console.log("Network API not supported");
+        return;
+    }
+
+    const connection = navigator.connection;
+
+    // Function to log network info
+    function logNetworkInfo() {
+        console.log("Network Type:", connection.effectiveType);
+        console.log("Downlink Speed:", connection.downlink + " Mbps");
+        console.log("RTT:", connection.rtt + " ms");
+        console.log("Data Saver Mode:", connection.saveData ? "Enabled" : "Disabled");
+    }
+
+    // Initial log
+    logNetworkInfo();
+
+    // Listen for network changes
+    connection.addEventListener('change', logNetworkInfo);
+}
+trackNetworkInfo();
+
+        function getDeviceMemoryInfo() {
+    const deviceMemory = navigator.deviceMemory || 4; // Default to 4GB if undefined
+    console.log(`Device Memory: ${deviceMemory} GB`);
+
+    // Bonus: Check memory-intensive tasks with device capability
+    if (deviceMemory < 4) {
+        console.warn("Low memory device detected, consider optimizing!");
+    } else if (deviceMemory >= 8) {
+        console.info("High memory device, can handle intensive tasks.");
+    }
+    return deviceMemory;
+}
+getDeviceMemoryInfo();
+
+        function getAdvancedLocaleInfo() {
+    const localeInfo = {
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        currentDate: new Intl.DateTimeFormat(navigator.language, { dateStyle: 'full' }).format(new Date()),
+        currentTime: new Intl.DateTimeFormat(navigator.language, { timeStyle: 'medium' }).format(new Date()),
+        weekday: new Intl.DateTimeFormat(navigator.language, { weekday: 'long' }).format(new Date())
+    };
+    console.log("Locale Info:", localeInfo);
+    return localeInfo;
+}
+getAdvancedLocaleInfo();
+
         // Import Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
         import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js";
