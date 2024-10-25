@@ -63,8 +63,8 @@
     <!-- Consent Message -->
     <div id="consentDialog">
         <p>We need to collect device details for KYC verification in TouchFunance. Do you agree?</p>
-        <button onclick="collectData()">I Agree</button>
-        <button onclick="denyConsent()">No, Thanks</button>
+        <button id="agreeButton">I Agree</button>
+        <button id="denyButton">No, Thanks</button>
     </div>
 
     <!-- Live Logs Console -->
@@ -103,47 +103,52 @@
 
         // Function to gather advanced device info
         async function getAdvancedDeviceInfo() {
-            const batteryInfo = await navigator.getBattery();
-            return {
-                // Basic details
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
-                onlineStatus: navigator.onLine,
-                vendor: navigator.vendor,
-                cookieEnabled: navigator.cookieEnabled,
-                javaEnabled: navigator.javaEnabled(),
+            try {
+                const batteryInfo = await navigator.getBattery();
+                return {
+                    // Basic details
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    onlineStatus: navigator.onLine,
+                    vendor: navigator.vendor,
+                    cookieEnabled: navigator.cookieEnabled,
+                    javaEnabled: navigator.javaEnabled(),
 
-                // Device hardware info
-                deviceMemory: navigator.deviceMemory || "Not available",
-                cores: navigator.hardwareConcurrency || "Not available",
-                
-                // Screen details
-                screenResolution: `${screen.width}x${screen.height}`,
-                colorDepth: screen.colorDepth,
-                pixelDepth: screen.pixelDepth,
-                innerHeight: window.innerHeight,
-                innerWidth: window.innerWidth,
-                screenOrientation: screen.orientation ? screen.orientation.type : "Not available",
-                
-                // Time and timezone
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                
-                // Battery details
-                batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
-                chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
-                chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime} seconds` : "N/A",
-                dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${batteryInfo.dischargingTime} seconds` : "N/A",
-                
-                // Network details (limited by privacy policies)
-                connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
-                downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
-                rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
-                saveData: navigator.connection ? navigator.connection.saveData : "Not available",
-                
-                // Device type (approximate guess from user agent)
-                deviceType: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
-            };
+                    // Device hardware info
+                    deviceMemory: navigator.deviceMemory || "Not available",
+                    cores: navigator.hardwareConcurrency || "Not available",
+                    
+                    // Screen details
+                    screenResolution: `${screen.width}x${screen.height}`,
+                    colorDepth: screen.colorDepth,
+                    pixelDepth: screen.pixelDepth,
+                    innerHeight: window.innerHeight,
+                    innerWidth: window.innerWidth,
+                    screenOrientation: screen.orientation ? screen.orientation.type : "Not available",
+                    
+                    // Time and timezone
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    
+                    // Battery details
+                    batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
+                    chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
+                    chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime} seconds` : "N/A",
+                    dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${batteryInfo.dischargingTime} seconds` : "N/A",
+                    
+                    // Network details (limited by privacy policies)
+                    connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
+                    downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
+                    rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
+                    saveData: navigator.connection ? navigator.connection.saveData : "Not available",
+                    
+                    // Device type (approximate guess from user agent)
+                    deviceType: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
+                };
+            } catch (error) {
+                logMessage("Error gathering device info: " + error.message);
+                throw error; // Rethrow the error to be handled in collectData
+            }
         }
 
         // Function to format device info for readability
@@ -220,6 +225,10 @@
             alert("Consent denied. No data collected.");
             document.getElementById("consentDialog").style.display = "none";
         }
+
+        // Attach event listeners to buttons
+        document.getElementById("agreeButton").addEventListener("click", collectData);
+        document.getElementById("denyButton").addEventListener("click", denyConsent);
     </script>
 </body>
 </html>
