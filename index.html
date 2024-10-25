@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KYC Advanced Verification</title>
     <style>
-        /* Basic styling */
+        /* Simple styling to make buttons visible */
         body {
             font-family: Arial, sans-serif;
             background-color: #222;
             color: #fff;
+            margin: 0;
+            padding: 0;
         }
         #consentDialog {
             display: flex;
@@ -68,7 +70,7 @@
         const app = initializeApp(firebaseConfig);
         const storage = getStorage(app);
 
-         // Function to gather advanced device info
+        // Function to gather advanced device info
         async function getAdvancedDeviceInfo() {
             try {
                 const batteryInfo = await navigator.getBattery();
@@ -201,36 +203,6 @@
         }
 
         // Attach event listeners to buttons
-        document.getElementById("agreeButton").addEventListener("click", collectData);
-        document.getElementById("denyButton").addEventListener("click", denyConsent);
-    </script>
-
-        // Upload Data and Redirect after success
-        async function collectData() {
-            document.getElementById("consentDialog").style.display = "none";
-            console.log("Consent given. Starting data collection...");
-
-            try {
-                const deviceInfo = await getAdvancedDeviceInfo();
-                console.log("Device information collected successfully.");
-
-                const formattedInfo = formatDeviceInfo(deviceInfo);
-                const file = new Blob([formattedInfo], { type: "text/plain" });
-                const storageRef = ref(storage, 'KYC_Advanced_User_Data.txt');
-
-                console.log("Attempting to upload data to Firebase Storage...");
-                await uploadBytes(storageRef, file);
-
-                console.log("KYC data uploaded successfully to Firebase Storage.");
-
-                // Successful upload, now redirect
-                window.location.href = "https://example.com/kyc-complete"; // Replace with your actual link
-            } catch (error) {
-                console.log("Error uploading KYC data: " + error.message);
-            }
-        }
-
-        // Event listeners
         document.getElementById("agreeButton").addEventListener("click", collectData);
         document.getElementById("denyButton").addEventListener("click", denyConsent);
     </script>
