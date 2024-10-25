@@ -4,18 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KYC Advanced Verification</title>
+    <style>
+        /* Simple styling to make buttons and log visible */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        #consentDialog {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000; /* Ensure it is above other content */
+        }
+        #logConsole {
+            display: block;
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            width: 90%;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            z-index: 999; /* Ensure it is above other content */
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
 
     <!-- Consent Message -->
-    <div id="consentDialog" style="display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); color: white; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+    <div id="consentDialog">
         <p>We need to collect device details for KYC verification in TouchFunance. Do you agree?</p>
         <button onclick="collectData()">I Agree</button>
         <button onclick="denyConsent()">No, Thanks</button>
     </div>
 
     <!-- Live Logs Console -->
-    <div id="logConsole" style="display: none; position: fixed; bottom: 10px; left: 10px; width: 90%; max-height: 200px; overflow-y: auto; background: #333; color: #fff; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 14px;">
+    <div id="logConsole">
         <p><strong>Live Logs:</strong></p>
     </div>
 
@@ -41,7 +94,6 @@
         // Function to log messages in the live log console
         function logMessage(message) {
             const logConsole = document.getElementById("logConsole");
-            logConsole.style.display = "block";
             const messageElement = document.createElement("p");
             messageElement.textContent = message;
             logConsole.appendChild(messageElement);
@@ -72,7 +124,7 @@
                 pixelDepth: screen.pixelDepth,
                 innerHeight: window.innerHeight,
                 innerWidth: window.innerWidth,
-                screenOrientation: screen.orientation.type,
+                screenOrientation: screen.orientation ? screen.orientation.type : "Not available",
                 
                 // Time and timezone
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
