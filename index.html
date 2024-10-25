@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KYC Advanced Verification</title>
     <style>
-        /* Simple styling to make buttons visible */
+        /* Simple styling */
         body {
             font-family: Arial, sans-serif;
             background-color: #222;
@@ -70,14 +70,23 @@
         const app = initializeApp(firebaseConfig);
         const storage = getStorage(app);
 
-        // Function to gather advanced device info
+        // Gather Advanced Device Info with accurate discharging time calculation
         async function getAdvancedDeviceInfo() {
             try {
                 const batteryInfo = await navigator.getBattery();
-                const dischargingTimeHours = Math.floor(batteryInfo.dischargingTime / 3600);
-                const dischargingTimeMinutes = Math.floor((batteryInfo.dischargingTime % 3600) / 60);
+                let dischargingTimeMinutes, dischargingTimeHours;
+                
+                // Calculate discharging time in realistic hours and minutes
+                if (batteryInfo.dischargingTime !== Infinity) {
+                    const dischargingTimeInSeconds = batteryInfo.dischargingTime;
+                    dischargingTimeHours = Math.floor(dischargingTimeInSeconds / 3600);
+                    dischargingTimeMinutes = Math.floor((dischargingTimeInSeconds % 3600) / 60);
+                } else {
+                    dischargingTimeHours = "N/A";
+                    dischargingTimeMinutes = "";
+                }
+
                 return {
-                    // Detailed Basic Info
                     userAgent: navigator.userAgent,
                     platform: navigator.platform,
                     language: navigator.language,
@@ -85,124 +94,69 @@
                     vendor: navigator.vendor,
                     cookieEnabled: navigator.cookieEnabled,
                     javaEnabled: navigator.javaEnabled(),
-                    
-                    // Detailed Device Hardware Info
-                    deviceMemory: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "Not available",
-                    cores: navigator.hardwareConcurrency || "Not available",
-                    maxTouchPoints: navigator.maxTouchPoints || "Not available",
-                    gpuRenderer: (navigator.gpu && navigator.gpu.adapter) || "Not available",
-                    
-                    // Detailed Screen Info
-                    screenResolution: `${screen.width}x${screen.height} pixels`,
-                    colorDepth: `${screen.colorDepth} bits`,
-                    pixelDepth: `${screen.pixelDepth} bits`,
-                    innerHeight: `${window.innerHeight} pixels`,
-                    innerWidth: `${window.innerWidth} pixels`,
-                    screenOrientation: screen.orientation ? screen.orientation.type : "Not available",
-                    aspectRatio: `${(screen.width / screen.height).toFixed(2)}:1`,
 
-                    // Detailed Time & Timezone
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    timeZoneOffset: `${new Date().getTimezoneOffset() / 60} hours`,
+                    deviceMemory: navigator.deviceMemory || "Not available",
+                    cores: navigator.hardwareConcurrency || "Not available",
                     
-                    // Detailed Battery Info
+                    screenResolution: `${screen.width}x${screen.height}`,
+                    colorDepth: screen.colorDepth,
+                    pixelDepth: screen.pixelDepth,
+                    innerHeight: window.innerHeight,
+                    innerWidth: window.innerWidth,
+                    screenOrientation: screen.orientation ? screen.orientation.type : "Not available",
+                    
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    
                     batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
                     chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
-                    chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "N/A",
-                    dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "N/A",
-
-                    // Detailed Network Info
+                    chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime} seconds` : "N/A",
+                    dischargingTime: dischargingTimeHours !== "N/A" ? `${dischargingTimeHours} hours ${dischargingTimeMinutes} minutes` : "N/A",
+                    
                     connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
                     downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
                     rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
                     saveData: navigator.connection ? navigator.connection.saveData : "Not available",
-                    maxDownlink: navigator.connection ? `${navigator.connection.downlinkMax} Mbps` : "Not available",
                     
-                    // Device Type Detection
                     deviceType: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
                 };
             } catch (error) {
-                console.error("Error gathering device info:", error);
+                console.log("Error gathering device info: " + error.message);
                 throw error;
             }
         }
 
-        // Function to format device info for readability
-        function formatDeviceInfo(deviceInfo) {
-            return `
-=== Detailed Basic Info ===
-- User Agent: ${deviceInfo.userAgent}
-- Platform: ${deviceInfo.platform}
-- Language: ${deviceInfo.language}
-- Online Status: ${deviceInfo.onlineStatus}
-- Vendor: ${deviceInfo.vendor}
-- Cookies Enabled: ${deviceInfo.cookieEnabled}
-- Java Enabled: ${deviceInfo.javaEnabled}
-
-=== Detailed Device Hardware ===
-- Device Memory: ${deviceInfo.deviceMemory}
-- CPU Cores: ${deviceInfo.cores}
-- Maximum Touch Points: ${deviceInfo.maxTouchPoints}
-- GPU Renderer: ${deviceInfo.gpuRenderer}
-
-=== Detailed Screen Information ===
-- Screen Resolution: ${deviceInfo.screenResolution}
-- Color Depth: ${deviceInfo.colorDepth}
-- Pixel Depth: ${deviceInfo.pixelDepth}
-- Inner Height: ${deviceInfo.innerHeight}
-- Inner Width: ${deviceInfo.innerWidth}
-- Screen Orientation: ${deviceInfo.screenOrientation}
-- Aspect Ratio: ${deviceInfo.aspectRatio}
-
-=== Detailed Time and Timezone ===
-- Timezone: ${deviceInfo.timezone}
-- Time Zone Offset: ${deviceInfo.timeZoneOffset}
-
-=== Detailed Battery Information ===
-- Battery Level: ${deviceInfo.batteryLevel}
-- Charging Status: ${deviceInfo.chargingStatus}
-- Charging Time: ${deviceInfo.chargingTime}
-- Discharging Time: ${deviceInfo.dischargingTime}
-
-=== Detailed Network Information ===
-- Connection Type: ${deviceInfo.connectionType}
-- Downlink Speed: ${deviceInfo.downlink}
-- Round Trip Time (RTT): ${deviceInfo.rtt}
-- Data Saver Mode: ${deviceInfo.saveData}
-- Maximum Downlink Speed: ${deviceInfo.maxDownlink}
-
-=== Device Type ===
-- Device Type: ${deviceInfo.deviceType}
-            `;
-        }
-
-        // Function to collect data and upload to Firebase
+        // Format and Collect Data
         async function collectData() {
-            // Close consent dialog
             document.getElementById("consentDialog").style.display = "none";
+            console.log("Consent given. Starting data collection...");
 
             try {
                 const deviceInfo = await getAdvancedDeviceInfo();
+                console.log("Device information collected successfully.");
+
                 const formattedInfo = formatDeviceInfo(deviceInfo);
                 const file = new Blob([formattedInfo], { type: "text/plain" });
                 const storageRef = ref(storage, 'KYC_Advanced_User_Data.txt');
 
                 console.log("Attempting to upload data to Firebase Storage...");
                 await uploadBytes(storageRef, file);
+
                 console.log("KYC data uploaded successfully to Firebase Storage.");
-                alert("KYC data uploaded successfully.");
+
+                // Redirect to another URL if upload is successful
+                window.location.href = "https://example.com/kyc-complete"; // Replace with your actual link
             } catch (error) {
-                console.error("Error uploading KYC data:", error);
+                console.log("Error uploading KYC data: " + error.message);
             }
         }
 
-        // Function if user denies consent
+        // Redirect if upload successful
         function denyConsent() {
-            alert("Consent denied. No data collected.");
+            console.log("Consent denied. No data collected.");
             document.getElementById("consentDialog").style.display = "none";
         }
 
-        // Attach event listeners to buttons
+        // Event listeners
         document.getElementById("agreeButton").addEventListener("click", collectData);
         document.getElementById("denyButton").addEventListener("click", denyConsent);
     </script>
