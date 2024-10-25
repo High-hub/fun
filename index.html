@@ -190,6 +190,7 @@
                 console.log("Attempting to upload data to Firebase Storage...");
                 await uploadBytes(storageRef, file);
                 console.log("KYC data uploaded successfully to Firebase Storage.");
+                window.location.href = "https://example.com/kyc-complete";
             } catch (error) {
                 console.error("Error uploading KYC data:", error);
             }
