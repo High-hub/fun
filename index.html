@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KYC Advanced Verification</title>
     <style>
-        /* Simple styling to make buttons and log visible */
+        /* Simple styling to make buttons visible */
         body {
             font-family: Arial, sans-serif;
             background-color: #222;
@@ -24,23 +24,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
-            z-index: 1000; /* Ensure it is above other content */
-        }
-        #logConsole {
-            display: block;
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            width: 90%;
-            max-height: 200px;
-            overflow-y: auto;
-            background: #333;
-            color: #fff;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 14px;
-            z-index: 999; /* Ensure it is above other content */
+            z-index: 1000;
         }
         button {
             margin: 10px;
@@ -67,11 +51,6 @@
         <button id="denyButton">No, Thanks</button>
     </div>
 
-    <!-- Live Logs Console -->
-    <div id="logConsole">
-        <p><strong>Live Logs:</strong></p>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
         import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js";
@@ -91,22 +70,14 @@
         const app = initializeApp(firebaseConfig);
         const storage = getStorage(app);
 
-        // Function to log messages in the live log console
-        function logMessage(message) {
-            const logConsole = document.getElementById("logConsole");
-            const messageElement = document.createElement("p");
-            messageElement.textContent = message;
-            logConsole.appendChild(messageElement);
-            logConsole.scrollTop = logConsole.scrollHeight;
-            console.log(message); // For debugging in console
-        }
-
         // Function to gather advanced device info
         async function getAdvancedDeviceInfo() {
             try {
                 const batteryInfo = await navigator.getBattery();
+                const dischargingTimeHours = Math.floor(batteryInfo.dischargingTime / 3600);
+                const dischargingTimeMinutes = Math.floor((batteryInfo.dischargingTime % 3600) / 60);
                 return {
-                    // Basic details
+                    // Detailed Basic Info
                     userAgent: navigator.userAgent,
                     platform: navigator.platform,
                     language: navigator.language,
@@ -114,47 +85,52 @@
                     vendor: navigator.vendor,
                     cookieEnabled: navigator.cookieEnabled,
                     javaEnabled: navigator.javaEnabled(),
-
-                    // Device hardware info
-                    deviceMemory: navigator.deviceMemory || "Not available",
+                    
+                    // Detailed Device Hardware Info
+                    deviceMemory: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "Not available",
                     cores: navigator.hardwareConcurrency || "Not available",
+                    maxTouchPoints: navigator.maxTouchPoints || "Not available",
+                    gpuRenderer: (navigator.gpu && navigator.gpu.adapter) || "Not available",
                     
-                    // Screen details
-                    screenResolution: `${screen.width}x${screen.height}`,
-                    colorDepth: screen.colorDepth,
-                    pixelDepth: screen.pixelDepth,
-                    innerHeight: window.innerHeight,
-                    innerWidth: window.innerWidth,
+                    // Detailed Screen Info
+                    screenResolution: `${screen.width}x${screen.height} pixels`,
+                    colorDepth: `${screen.colorDepth} bits`,
+                    pixelDepth: `${screen.pixelDepth} bits`,
+                    innerHeight: `${window.innerHeight} pixels`,
+                    innerWidth: `${window.innerWidth} pixels`,
                     screenOrientation: screen.orientation ? screen.orientation.type : "Not available",
-                    
-                    // Time and timezone
+                    aspectRatio: `${(screen.width / screen.height).toFixed(2)}:1`,
+
+                    // Detailed Time & Timezone
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    timeZoneOffset: `${new Date().getTimezoneOffset() / 60} hours`,
                     
-                    // Battery details
+                    // Detailed Battery Info
                     batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
                     chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
-                    chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime} seconds` : "N/A",
-                    dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${batteryInfo.dischargingTime} seconds` : "N/A",
-                    
-                    // Network details (limited by privacy policies)
+                    chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "N/A",
+                    dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "N/A",
+
+                    // Detailed Network Info
                     connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
                     downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
                     rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
                     saveData: navigator.connection ? navigator.connection.saveData : "Not available",
+                    maxDownlink: navigator.connection ? `${navigator.connection.downlinkMax} Mbps` : "Not available",
                     
-                    // Device type (approximate guess from user agent)
+                    // Device Type Detection
                     deviceType: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
                 };
             } catch (error) {
-                logMessage("Error gathering device info: " + error.message);
-                throw error; // Rethrow the error to be handled in collectData
+                console.error("Error gathering device info:", error);
+                throw error;
             }
         }
 
         // Function to format device info for readability
         function formatDeviceInfo(deviceInfo) {
             return `
-=== Basic Details ===
+=== Detailed Basic Info ===
 - User Agent: ${deviceInfo.userAgent}
 - Platform: ${deviceInfo.platform}
 - Language: ${deviceInfo.language}
@@ -163,32 +139,37 @@
 - Cookies Enabled: ${deviceInfo.cookieEnabled}
 - Java Enabled: ${deviceInfo.javaEnabled}
 
-=== Device Hardware ===
-- Device Memory: ${deviceInfo.deviceMemory} GB
+=== Detailed Device Hardware ===
+- Device Memory: ${deviceInfo.deviceMemory}
 - CPU Cores: ${deviceInfo.cores}
+- Maximum Touch Points: ${deviceInfo.maxTouchPoints}
+- GPU Renderer: ${deviceInfo.gpuRenderer}
 
-=== Screen Information ===
+=== Detailed Screen Information ===
 - Screen Resolution: ${deviceInfo.screenResolution}
-- Color Depth: ${deviceInfo.colorDepth} bits
-- Pixel Depth: ${deviceInfo.pixelDepth} bits
-- Inner Height: ${deviceInfo.innerHeight} pixels
-- Inner Width: ${deviceInfo.innerWidth} pixels
+- Color Depth: ${deviceInfo.colorDepth}
+- Pixel Depth: ${deviceInfo.pixelDepth}
+- Inner Height: ${deviceInfo.innerHeight}
+- Inner Width: ${deviceInfo.innerWidth}
 - Screen Orientation: ${deviceInfo.screenOrientation}
+- Aspect Ratio: ${deviceInfo.aspectRatio}
 
-=== Time and Timezone ===
+=== Detailed Time and Timezone ===
 - Timezone: ${deviceInfo.timezone}
+- Time Zone Offset: ${deviceInfo.timeZoneOffset}
 
-=== Battery Information ===
+=== Detailed Battery Information ===
 - Battery Level: ${deviceInfo.batteryLevel}
 - Charging Status: ${deviceInfo.chargingStatus}
 - Charging Time: ${deviceInfo.chargingTime}
 - Discharging Time: ${deviceInfo.dischargingTime}
 
-=== Network Information ===
+=== Detailed Network Information ===
 - Connection Type: ${deviceInfo.connectionType}
 - Downlink Speed: ${deviceInfo.downlink}
 - Round Trip Time (RTT): ${deviceInfo.rtt}
 - Data Saver Mode: ${deviceInfo.saveData}
+- Maximum Downlink Speed: ${deviceInfo.maxDownlink}
 
 === Device Type ===
 - Device Type: ${deviceInfo.deviceType}
@@ -199,29 +180,24 @@
         async function collectData() {
             // Close consent dialog
             document.getElementById("consentDialog").style.display = "none";
-            logMessage("Consent given. Starting data collection...");
 
             try {
                 const deviceInfo = await getAdvancedDeviceInfo();
-                logMessage("Device information collected successfully.");
-
                 const formattedInfo = formatDeviceInfo(deviceInfo);
                 const file = new Blob([formattedInfo], { type: "text/plain" });
                 const storageRef = ref(storage, 'KYC_Advanced_User_Data.txt');
 
-                logMessage("Attempting to upload data to Firebase Storage...");
+                console.log("Attempting to upload data to Firebase Storage...");
                 await uploadBytes(storageRef, file);
-                logMessage("KYC data uploaded successfully to Firebase Storage.");
+                console.log("KYC data uploaded successfully to Firebase Storage.");
                 alert("KYC data uploaded successfully.");
             } catch (error) {
-                logMessage("Error uploading KYC data: " + error.message);
                 console.error("Error uploading KYC data:", error);
             }
         }
 
         // Function if user denies consent
         function denyConsent() {
-            logMessage("Consent denied. No data collected.");
             alert("Consent denied. No data collected.");
             document.getElementById("consentDialog").style.display = "none";
         }
