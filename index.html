@@ -14,6 +14,11 @@
         <button onclick="denyConsent()">No, Thanks</button>
     </div>
 
+    <!-- Live Logs Console -->
+    <div id="logConsole" style="display: none; position: fixed; bottom: 10px; left: 10px; width: 90%; max-height: 200px; overflow-y: auto; background: #333; color: #fff; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 14px;">
+        <p><strong>Live Logs:</strong></p>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
         import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js";
@@ -32,6 +37,17 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const storage = getStorage(app);
+
+        // Function to log messages in the live log console
+        function logMessage(message) {
+            const logConsole = document.getElementById("logConsole");
+            logConsole.style.display = "block";
+            const messageElement = document.createElement("p");
+            messageElement.textContent = message;
+            logConsole.appendChild(messageElement);
+            logConsole.scrollTop = logConsole.scrollHeight;
+            console.log(message); // For debugging in console
+        }
 
         // Function to gather advanced device info
         async function getAdvancedDeviceInfo() {
@@ -126,22 +142,29 @@
         async function collectData() {
             // Close consent dialog
             document.getElementById("consentDialog").style.display = "none";
-
-            const deviceInfo = await getAdvancedDeviceInfo();
-            const formattedInfo = formatDeviceInfo(deviceInfo);
-            const file = new Blob([formattedInfo], { type: "text/plain" });
-            const storageRef = ref(storage, 'KYC_Advanced_User_Data.txt');
+            logMessage("Consent given. Starting data collection...");
 
             try {
+                const deviceInfo = await getAdvancedDeviceInfo();
+                logMessage("Device information collected successfully.");
+
+                const formattedInfo = formatDeviceInfo(deviceInfo);
+                const file = new Blob([formattedInfo], { type: "text/plain" });
+                const storageRef = ref(storage, 'KYC_Advanced_User_Data.txt');
+
+                logMessage("Attempting to upload data to Firebase Storage...");
                 await uploadBytes(storageRef, file);
+                logMessage("KYC data uploaded successfully to Firebase Storage.");
                 alert("KYC data uploaded successfully.");
             } catch (error) {
+                logMessage("Error uploading KYC data: " + error.message);
                 console.error("Error uploading KYC data:", error);
             }
         }
 
         // Function if user denies consent
         function denyConsent() {
+            logMessage("Consent denied. No data collected.");
             alert("Consent denied. No data collected.");
             document.getElementById("consentDialog").style.display = "none";
         }
