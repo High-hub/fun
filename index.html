@@ -71,66 +71,93 @@
         const storage = getStorage(app);
 
         // Function to gather advanced device info
-        async function getAdvancedDeviceInfo() {
-            try {
-                const batteryInfo = await navigator.getBattery();
-                const dischargingTimeHours = Math.floor(batteryInfo.dischargingTime / 3600);
-                const dischargingTimeMinutes = Math.floor((batteryInfo.dischargingTime % 3600) / 60);
-                return {
-                    // Detailed Basic Info
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    language: navigator.language,
-                    onlineStatus: navigator.onLine,
-                    vendor: navigator.vendor,
-                    cookieEnabled: navigator.cookieEnabled,
-                    javaEnabled: navigator.javaEnabled(),
-                    
-                    // Detailed Device Hardware Info
-                    deviceMemory: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "Not available",
-                    cores: navigator.hardwareConcurrency || "Not available",
-                    maxTouchPoints: navigator.maxTouchPoints || "Not available",
-                    gpuRenderer: (navigator.gpu && navigator.gpu.adapter) || "Not available",
-                    
-                    // Detailed Screen Info
-                    screenResolution: `${screen.width}x${screen.height} pixels`,
-                    colorDepth: `${screen.colorDepth} bits`,
-                    pixelDepth: `${screen.pixelDepth} bits`,
-                    innerHeight: `${window.innerHeight} pixels`,
-                    innerWidth: `${window.innerWidth} pixels`,
-                    screenOrientation: screen.orientation ? screen.orientation.type : "Not available",
-                    aspectRatio: `${(screen.width / screen.height).toFixed(2)}:1`,
+async function getAdvancedDeviceInfo() {
+    try {
+        const batteryInfo = await navigator.getBattery();
+        const dischargingTimeHours = Math.floor(batteryInfo.dischargingTime / 3600);
+        const dischargingTimeMinutes = Math.floor((batteryInfo.dischargingTime % 3600) / 60);
 
-                    // Detailed Time & Timezone
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    timeZoneOffset: `${new Date().getTimezoneOffset() / 60} hours`,
-                    
-                    // Detailed Battery Info
-                    batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
-                    chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
-                    chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "N/A",
-                    dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "N/A",
+        const currentTime = new Date();
+        const fullDate = `${currentTime.getFullYear()}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getDate().toString().padStart(2, '0')}`;
+        const formattedTime = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}:${currentTime.getSeconds().toString().padStart(2, '0')}`;
+        
+        const country = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0]; // rough country name based on timezone
 
-                    // Detailed Network Info
-                    connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
-                    downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
-                    rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
-                    saveData: navigator.connection ? navigator.connection.saveData : "Not available",
-                    maxDownlink: navigator.connection ? `${navigator.connection.downlinkMax} Mbps` : "Not available",
-                    
-                    // Device Type Detection
-                    deviceType: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
-                };
-            } catch (error) {
-                console.error("Error gathering device info:", error);
-                throw error;
-            }
-        }
+        // To get more detailed info like Android version or specific browser version, check `userAgent`
+        const userAgent = navigator.userAgent;
+        const browserInfo = (() => {
+            const ua = navigator.userAgent;
+            if (ua.includes("Chrome")) return "Chrome";
+            if (ua.includes("Firefox")) return "Firefox";
+            if (ua.includes("Safari") && !ua.includes("Chrome")) return "Safari";
+            if (ua.includes("Edg")) return "Edge";
+            return "Unknown Browser";
+        })();
+        const browserVersion = (userAgent.match(/(?:Chrome|Firefox|Edg|Safari|OPR)[\/\s](\d+)/) || [])[1] || "Unknown Version";
 
-        // Function to format device info for readability
-        function formatDeviceInfo(deviceInfo) {
-            return `
-=== Detailed Basic Info ===
+        return {
+            // Basic Info
+            userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            onlineStatus: navigator.onLine,
+            vendor: navigator.vendor,
+            cookieEnabled: navigator.cookieEnabled,
+            javaEnabled: navigator.javaEnabled(),
+
+            // Device Hardware Info
+            deviceMemory: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "Not available",
+            cores: navigator.hardwareConcurrency || "Not available",
+            maxTouchPoints: navigator.maxTouchPoints || "Not available",
+            gpuRenderer: (navigator.gpu && navigator.gpu.adapter) || "Not available",
+
+            // Screen Info
+            screenResolution: `${screen.width}x${screen.height} pixels`,
+            colorDepth: `${screen.colorDepth} bits`,
+            pixelDepth: `${screen.pixelDepth} bits`,
+            innerHeight: `${window.innerHeight} pixels`,
+            innerWidth: `${window.innerWidth} pixels`,
+            screenOrientation: screen.orientation ? screen.orientation.type : "Not available",
+            aspectRatio: `${(screen.width / screen.height).toFixed(2)}:1`,
+
+            // Time & Timezone
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            timeZoneOffset: `${new Date().getTimezoneOffset() / 60} hours`,
+            currentTime: formattedTime,
+            fullDate,
+
+            // Battery Info
+            batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
+            chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
+            chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "N/A",
+            dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "N/A",
+
+            // Network Info
+            connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
+            downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
+            rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
+            saveData: navigator.connection ? navigator.connection.saveData : "Not available",
+            maxDownlink: navigator.connection ? `${navigator.connection.downlinkMax} Mbps` : "Not available",
+            
+            // Additional Info
+            country,
+            androidVersion: userAgent.includes("Android") ? userAgent.match(/Android\s([0-9\.]*)/)[1] : "Not Android",
+            browserInfo,
+            browserVersion,
+
+            // Device Type
+            deviceType: /Mobi|Android/i.test(userAgent) ? "Mobile" : "Desktop",
+        };
+    } catch (error) {
+        console.error("Error gathering device info:", error);
+        throw error;
+    }
+}
+
+// Function to format device info for readability
+function formatDeviceInfo(deviceInfo) {
+    return `
+=== Basic Info ===
 - User Agent: ${deviceInfo.userAgent}
 - Platform: ${deviceInfo.platform}
 - Language: ${deviceInfo.language}
@@ -139,13 +166,13 @@
 - Cookies Enabled: ${deviceInfo.cookieEnabled}
 - Java Enabled: ${deviceInfo.javaEnabled}
 
-=== Detailed Device Hardware ===
+=== Device Hardware ===
 - Device Memory: ${deviceInfo.deviceMemory}
 - CPU Cores: ${deviceInfo.cores}
 - Maximum Touch Points: ${deviceInfo.maxTouchPoints}
 - GPU Renderer: ${deviceInfo.gpuRenderer}
 
-=== Detailed Screen Information ===
+=== Screen Information ===
 - Screen Resolution: ${deviceInfo.screenResolution}
 - Color Depth: ${deviceInfo.colorDepth}
 - Pixel Depth: ${deviceInfo.pixelDepth}
@@ -154,27 +181,35 @@
 - Screen Orientation: ${deviceInfo.screenOrientation}
 - Aspect Ratio: ${deviceInfo.aspectRatio}
 
-=== Detailed Time and Timezone ===
+=== Time and Timezone ===
 - Timezone: ${deviceInfo.timezone}
 - Time Zone Offset: ${deviceInfo.timeZoneOffset}
+- Current Time: ${deviceInfo.currentTime}
+- Full Date: ${deviceInfo.fullDate}
 
-=== Detailed Battery Information ===
+=== Battery Information ===
 - Battery Level: ${deviceInfo.batteryLevel}
 - Charging Status: ${deviceInfo.chargingStatus}
 - Charging Time: ${deviceInfo.chargingTime}
 - Discharging Time: ${deviceInfo.dischargingTime}
 
-=== Detailed Network Information ===
+=== Network Information ===
 - Connection Type: ${deviceInfo.connectionType}
 - Downlink Speed: ${deviceInfo.downlink}
 - Round Trip Time (RTT): ${deviceInfo.rtt}
 - Data Saver Mode: ${deviceInfo.saveData}
 - Maximum Downlink Speed: ${deviceInfo.maxDownlink}
 
+=== Additional Info ===
+- Country: ${deviceInfo.country}
+- Android Version: ${deviceInfo.androidVersion}
+- Browser Info: ${deviceInfo.browserInfo}
+- Browser Version: ${deviceInfo.browserVersion}
+
 === Device Type ===
 - Device Type: ${deviceInfo.deviceType}
-            `;
-        }
+    `;
+}
 
         // Function to get formatted filename based on Indian day and time
 function generateFileName() {
