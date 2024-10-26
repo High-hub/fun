@@ -128,10 +128,10 @@ async function getAdvancedDeviceInfo() {
     }
 }
 
-// Function to format device info for readability (expanded to include new fields)
+// Function to format device info for readability
 function formatDeviceInfo(deviceInfo) {
     return `
-=== Basic Info ===
+=== Detailed Basic Info ===
 - User Agent: ${deviceInfo.userAgent}
 - Platform: ${deviceInfo.platform}
 - Language: ${deviceInfo.language}
@@ -140,14 +140,13 @@ function formatDeviceInfo(deviceInfo) {
 - Cookies Enabled: ${deviceInfo.cookieEnabled}
 - Java Enabled: ${deviceInfo.javaEnabled}
 
-=== Device Hardware ===
+=== Detailed Device Hardware ===
 - Device Memory: ${deviceInfo.deviceMemory}
 - CPU Cores: ${deviceInfo.cores}
 - Maximum Touch Points: ${deviceInfo.maxTouchPoints}
-- GPU Vendor: ${deviceInfo.gpuVendor}
 - GPU Renderer: ${deviceInfo.gpuRenderer}
 
-=== Screen Information ===
+=== Detailed Screen Information ===
 - Screen Resolution: ${deviceInfo.screenResolution}
 - Color Depth: ${deviceInfo.colorDepth}
 - Pixel Depth: ${deviceInfo.pixelDepth}
@@ -155,38 +154,23 @@ function formatDeviceInfo(deviceInfo) {
 - Inner Width: ${deviceInfo.innerWidth}
 - Screen Orientation: ${deviceInfo.screenOrientation}
 - Aspect Ratio: ${deviceInfo.aspectRatio}
-- Screen DPI: ${deviceInfo.screenDPI}
 
-=== Time and Timezone ===
+=== Detailed Time and Timezone ===
 - Timezone: ${deviceInfo.timezone}
 - Time Zone Offset: ${deviceInfo.timeZoneOffset}
-- Current Time: ${deviceInfo.currentTime}
-- Full Date: ${deviceInfo.fullDate}
-- 24-Hour Format: ${deviceInfo.is24HourFormat}
 
-=== Locale Information ===
-- Locale: ${deviceInfo.locale}
-- Country: ${deviceInfo.country}
-
-=== Battery Information ===
+=== Detailed Battery Information ===
 - Battery Level: ${deviceInfo.batteryLevel}
 - Charging Status: ${deviceInfo.chargingStatus}
 - Charging Time: ${deviceInfo.chargingTime}
 - Discharging Time: ${deviceInfo.dischargingTime}
-- Battery Discharge Rate: ${deviceInfo.batteryDischargeRate}
 
-=== Network Information ===
+=== Detailed Network Information ===
 - Connection Type: ${deviceInfo.connectionType}
 - Downlink Speed: ${deviceInfo.downlink}
 - Round Trip Time (RTT): ${deviceInfo.rtt}
 - Data Saver Mode: ${deviceInfo.saveData}
 - Maximum Downlink Speed: ${deviceInfo.maxDownlink}
-
-=== Additional Information ===
-- Browser Engine: ${deviceInfo.browserEngine}
-- Plugins Installed: ${deviceInfo.plugins.map(plugin => `${plugin.name} - ${plugin.description}`).join(', ')}
-- Audio Output Devices: ${deviceInfo.audioOutputDevices.join(', ') || "No audio output devices found"}
-- Video Output Devices: ${deviceInfo.videoOutputDevices.join(', ') || "No video output devices found"}
 
 === Device Type ===
 - Device Type: ${deviceInfo.deviceType}
