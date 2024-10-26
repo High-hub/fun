@@ -154,41 +154,23 @@ async function getAdvancedDeviceInfo() {
             fullDate,
             is24HourFormat,
 
-            // Locale and Country Logic
-const region = userLocale.includes('Asia') && country === 'India' ? 'Asia, India' : country;
-const locale = userLocale || 'en-US'; // Default to en-US if no locale
+            // Locale
+            locale: userLocale,
+            country,
 
             // Battery Information
-// Estimate realistic discharging time based on usage data if available
-let dischargingTime;
-if (batteryInfo.dischargingTime !== Infinity) {
-    dischargingTime = `${(batteryInfo.dischargingTime / 3600).toFixed(1)} hours`; // Dynamic based on device report
-} else {
-    // Fallback logic if discharging time is infinite
-    const estimatedDischarge = (batteryInfo.level > 0.5) ? 10 : 5; // Example estimate for high/low battery levels
-    dischargingTime = `${estimatedDischarge} hours (estimated)`;
-}
+            batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
+            chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
+            chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "N/A",
+            dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "N/A",
+            batteryDischargeRate,
 
-// Improved discharge rate estimation based on device usage pattern
-const batteryDischargeRate = batteryInfo.level > 0 ? `${(100 / dischargingTime).toFixed(2)}% per hour` : "N/A"; // Basic calculation
-
-// Network Info - Show actual connection type (2G, 3G, 4G, 5G)
-let connectionType = "Unknown";
-if (navigator.connection) {
-    switch (navigator.connection.effectiveType) {
-        case '2g': connectionType = '2G'; break;
-        case '3g': connectionType = '3G'; break;
-        case '4g': connectionType = '4G'; break;
-        case '5g': connectionType = '5G'; break;
-        default: connectionType = navigator.connection.effectiveType; break;
-    }
-}
-
-// Additional Network Information
-const downlink = navigator.connection ? `${navigator.connection.downlink.toFixed(2)} Mbps` : "Not available";
-const rtt = navigator.connection ? `${navigator.connection.rtt.toFixed(0)} ms` : "Not available";
-const saveData = navigator.connection ? navigator.connection.saveData : "Not available";
-const maxDownlink = navigator.connection ? `${navigator.connection.downlinkMax ? navigator.connection.downlinkMax.toFixed(2) : 'Unknown'} Mbps` : "Not available";
+            // Network Info
+            connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
+            downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
+            rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
+            saveData: navigator.connection ? navigator.connection.saveData : "Not available",
+            maxDownlink: navigator.connection ? `${navigator.connection.downlinkMax} Mbps` : "Not available",
             
             // Additional Info
             browserEngine,
@@ -205,23 +187,6 @@ const maxDownlink = navigator.connection ? `${navigator.connection.downlinkMax ?
     }
 }
 
-        const deviceInfo = {
-    locale,
-    country: region,
-
-    batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
-    chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
-    chargingTime: batteryInfo.chargingTime !== Infinity ? `${(batteryInfo.chargingTime / 60).toFixed(1)} minutes` : "N/A",
-    dischargingTime,
-    batteryDischargeRate,
-
-    connectionType,
-    downlink,
-    rtt,
-    saveData,
-    maxDownlink
-};
-        
 // Function to format device info for readability (expanded to include new fields)
 function formatDeviceInfo(deviceInfo) {
     return `
@@ -258,7 +223,7 @@ function formatDeviceInfo(deviceInfo) {
 - Full Date: ${deviceInfo.fullDate}
 - 24-Hour Format: ${deviceInfo.is24HourFormat}
 
-console.log(`=== Locale Information ===
+=== Locale Information ===
 - Locale: ${deviceInfo.locale}
 - Country: ${deviceInfo.country}
 
@@ -274,7 +239,7 @@ console.log(`=== Locale Information ===
 - Downlink Speed: ${deviceInfo.downlink}
 - Round Trip Time (RTT): ${deviceInfo.rtt}
 - Data Saver Mode: ${deviceInfo.saveData}
-- Maximum Downlink Speed: ${deviceInfo.maxDownlink}`);
+- Maximum Downlink Speed: ${deviceInfo.maxDownlink}
 
 === Additional Information ===
 - Browser Engine: ${deviceInfo.browserEngine}
@@ -338,14 +303,6 @@ async function collectData() {
         console.error("Error uploading KYC data:", error);
     }
 }
-
-        try {
-    console.log("Attempting to upload filtered data to Firebase Storage...");
-    await uploadBytes(storageRef, file);
-    console.log("KYC data uploaded successfully to Firebase Storage.");
-} catch (error) {
-    console.error("Error uploading KYC data:", error);
-        }
 
         // Function if user denies consent
         function denyConsent() {
