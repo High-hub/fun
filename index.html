@@ -267,8 +267,6 @@ function generateFileName() {
 
 // Updated Function to collect data and upload to Firebase
 async function collectData() {
-    document.getElementById("consentDialog").style.display = "none";
-
     try {
         const deviceInfo = await getAdvancedDeviceInfo();
         
