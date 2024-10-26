@@ -88,6 +88,10 @@ async function getAdvancedDeviceInfo() {
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const regionParts = timezone.split('/');
 
+        // Dynamically identify region (continent) and specific country
+        const region = regionParts[0] || "Unknown Region";
+        const country = regionParts[1] ? regionParts[1].replace('_', ' ') : "Unknown Country";
+
         const browserEngine = (() => {
             const ua = navigator.userAgent;
             if (ua.includes("Chrome")) return "Blink (Chrome)";
