@@ -74,16 +74,19 @@
 async function getAdvancedDeviceInfo() {
     try {
         const batteryInfo = await navigator.getBattery();
+
+        // Calculate discharging time in hours and minutes accurately
         const dischargingTimeHours = Math.floor(batteryInfo.dischargingTime / 3600);
         const dischargingTimeMinutes = Math.floor((batteryInfo.dischargingTime % 3600) / 60);
-
+        
         const currentTime = new Date();
         const fullDate = `${currentTime.getFullYear()}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getDate().toString().padStart(2, '0')}`;
         const formattedTime = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}:${currentTime.getSeconds().toString().padStart(2, '0')}`;
         
+         // Locale information with enhanced region and country detection
         const userLocale = navigator.language || navigator.userLanguage;
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const country = timezone.split('/')[0];
+        const regionParts = timezone.split('/');
 
         const browserEngine = (() => {
             const ua = navigator.userAgent;
