@@ -272,20 +272,29 @@ function generateFileName() {
     return `${dayName}_${formattedTime}.txt`;
 }
 
-// Function to collect data and upload to Firebase
+// Updated Function to collect data and upload to Firebase
 async function collectData() {
     document.getElementById("consentDialog").style.display = "none";
 
     try {
         const deviceInfo = await getAdvancedDeviceInfo();
-        const formattedInfo = formatDeviceInfo(deviceInfo);
+        
+        // Filter out any unavailable or restricted data
+        const filteredInfo = Object.entries(deviceInfo).reduce((acc, [key, value]) => {
+            if (value !== "Not available" && value !== null && value !== undefined) {
+                acc[key] = value;
+            }
+            return acc;
+        }, {});
+
+        const formattedInfo = formatDeviceInfo(filteredInfo);
         const file = new Blob([formattedInfo], { type: "text/plain" });
         
         // Generate unique filename based on Indian day and time
         const fileName = generateFileName();
         const storageRef = ref(storage, `users/${fileName}`); // Save in users folder
 
-        console.log("Attempting to upload data to Firebase Storage...");
+        console.log("Attempting to upload filtered data to Firebase Storage...");
         await uploadBytes(storageRef, file);
         
         console.log("KYC data uploaded successfully to Firebase Storage.");
