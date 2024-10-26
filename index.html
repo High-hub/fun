@@ -90,15 +90,6 @@ async function getAdvancedDeviceInfo() {
 
         // Dynamically identify region (continent) and specific country
         const region = regionParts[0] || "Unknown Region";
-        let country = regionParts[1] ? regionParts[1].replace('_', ' ') : "Unknown Country";
-
-        // Override country to 'India' if the region is detected as 'Asia'
-        if (region === "Asia") {
-            country = "India";
-        }
-
-        // Dynamically identify region (continent) and specific country
-        const region = regionParts[0] || "Unknown Region";
         const country = regionParts[1] ? regionParts[1].replace('_', ' ') : "Unknown Country";
 
         const browserEngine = (() => {
