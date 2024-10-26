@@ -73,51 +73,110 @@
         // Function to gather advanced device info
 async function getAdvancedDeviceInfo() {
     try {
-        const batteryInfo = await navigator.getBattery().catch(() => null);
-        const dischargingTimeHours = batteryInfo ? Math.floor(batteryInfo.dischargingTime / 3600) : null;
-        const dischargingTimeMinutes = batteryInfo ? Math.floor((batteryInfo.dischargingTime % 3600) / 60) : null;
+        const batteryInfo = await navigator.getBattery();
+        const dischargingTimeHours = Math.floor(batteryInfo.dischargingTime / 3600);
+        const dischargingTimeMinutes = Math.floor((batteryInfo.dischargingTime % 3600) / 60);
+
+        const currentTime = new Date();
+        const fullDate = `${currentTime.getFullYear()}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getDate().toString().padStart(2, '0')}`;
+        const formattedTime = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}:${currentTime.getSeconds().toString().padStart(2, '0')}`;
+        
+        const userLocale = navigator.language || navigator.userLanguage;
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const country = timezone.split('/')[0];
+
+        const browserEngine = (() => {
+            const ua = navigator.userAgent;
+            if (ua.includes("Chrome")) return "Blink (Chrome)";
+            if (ua.includes("Firefox")) return "Gecko (Firefox)";
+            if (ua.includes("Safari") && !ua.includes("Chrome")) return "WebKit (Safari)";
+            if (ua.includes("Edg")) return "Blink (Edge)";
+            return "Unknown Engine";
+        })();
+
+        const screenDPI = window.devicePixelRatio * 96; // Approximate DPI based on device pixel ratio
+        const is24HourFormat = new Intl.DateTimeFormat(userLocale, { hour: 'numeric' }).formatToParts().some(part => part.type === 'dayPeriod') ? false : true;
+
+        const plugins = Array.from(navigator.plugins).map(plugin => ({
+            name: plugin.name,
+            description: plugin.description
+        }));
+
+        const audioVideoDevices = await navigator.mediaDevices.enumerateDevices();
+        const audioOutputDevices = audioVideoDevices.filter(device => device.kind === 'audiooutput').map(device => device.label || "Unknown Audio Output");
+        const videoOutputDevices = audioVideoDevices.filter(device => device.kind === 'videoinput').map(device => device.label || "Unknown Video Output");
+
+        const gpuInfo = (() => {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl');
+            if (!gl) return { vendor: "Unknown", renderer: "Unknown" };
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            return debugInfo ? {
+                vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
+                renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+            } : { vendor: "Not Available", renderer: "Not Available" };
+        })();
+
+        const batteryDischargeRate = batteryInfo.dischargingTime !== Infinity && batteryInfo.level > 0 ? 
+            (batteryInfo.level / batteryInfo.dischargingTime) * 3600 : "Not Available";
 
         return {
-            // Detailed Basic Info
-            userAgent: navigator.userAgent || "information restricted",
-            platform: navigator.platform || "information restricted",
-            language: navigator.language || "information restricted",
-            onlineStatus: navigator.onLine || "information restricted",
-            vendor: navigator.vendor || "information restricted",
-            cookieEnabled: navigator.cookieEnabled !== undefined ? navigator.cookieEnabled : "information restricted",
-            javaEnabled: navigator.javaEnabled ? navigator.javaEnabled() : "information restricted",
+            // Basic Info
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            onlineStatus: navigator.onLine,
+            vendor: navigator.vendor,
+            cookieEnabled: navigator.cookieEnabled,
+            javaEnabled: navigator.javaEnabled(),
 
-            // Device Hardware Info
-            deviceMemory: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "information restricted",
-            cores: navigator.hardwareConcurrency || "information restricted",
-            maxTouchPoints: navigator.maxTouchPoints || "information restricted",
-            gpuRenderer: (navigator.gpu && navigator.gpu.adapter) || "information restricted",
+            // Device Hardware
+            deviceMemory: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "Not available",
+            cores: navigator.hardwareConcurrency || "Not available",
+            maxTouchPoints: navigator.maxTouchPoints || "Not available",
+            gpuVendor: gpuInfo.vendor,
+            gpuRenderer: gpuInfo.renderer,
 
-            // Screen Info
-            screenResolution: screen.width && screen.height ? `${screen.width}x${screen.height} pixels` : "information restricted",
-            colorDepth: screen.colorDepth ? `${screen.colorDepth} bits` : "information restricted",
-            pixelDepth: screen.pixelDepth ? `${screen.pixelDepth} bits` : "information restricted",
-            innerHeight: window.innerHeight ? `${window.innerHeight} pixels` : "information restricted",
-            innerWidth: window.innerWidth ? `${window.innerWidth} pixels` : "information restricted",
-            screenOrientation: screen.orientation ? screen.orientation.type : "information restricted",
-            aspectRatio: screen.width && screen.height ? `${(screen.width / screen.height).toFixed(2)}:1` : "information restricted",
+            // Screen Information
+            screenResolution: `${screen.width}x${screen.height} pixels`,
+            colorDepth: `${screen.colorDepth} bits`,
+            pixelDepth: `${screen.pixelDepth} bits`,
+            innerHeight: `${window.innerHeight} pixels`,
+            innerWidth: `${window.innerWidth} pixels`,
+            screenOrientation: screen.orientation ? screen.orientation.type : "Not available",
+            aspectRatio: `${(screen.width / screen.height).toFixed(2)}:1`,
+            screenDPI: `${screenDPI} DPI`,
 
-            // Time & Timezone Info
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "information restricted",
-            timeZoneOffset: `${new Date().getTimezoneOffset() / 60} hours` || "information restricted",
+            // Time & Timezone
+            timezone,
+            timeZoneOffset: `${currentTime.getTimezoneOffset() / 60} hours`,
+            currentTime: formattedTime,
+            fullDate,
+            is24HourFormat,
 
-            // Battery Info
-            batteryLevel: batteryInfo ? `${(batteryInfo.level * 100).toFixed(0)}%` : "information restricted",
-            chargingStatus: batteryInfo ? (batteryInfo.charging ? "Charging" : "Not Charging") : "information restricted",
-            chargingTime: batteryInfo && batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "information restricted",
-            dischargingTime: batteryInfo && batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "information restricted",
+            // Locale
+            locale: userLocale,
+            country,
+
+            // Battery Information
+            batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
+            chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
+            chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "N/A",
+            dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "N/A",
+            batteryDischargeRate,
 
             // Network Info
-            connectionType: navigator.connection ? navigator.connection.effectiveType : "information restricted",
-            downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "information restricted",
-            rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "information restricted",
-            saveData: navigator.connection ? navigator.connection.saveData : "information restricted",
-            maxDownlink: navigator.connection ? `${navigator.connection.downlinkMax} Mbps` : "information restricted",
+            connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
+            downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
+            rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
+            saveData: navigator.connection ? navigator.connection.saveData : "Not available",
+            maxDownlink: navigator.connection ? `${navigator.connection.downlinkMax} Mbps` : "Not available",
+            
+            // Additional Info
+            browserEngine,
+            plugins,
+            audioOutputDevices,
+            videoOutputDevices,
 
             // Device Type
             deviceType: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
@@ -128,10 +187,10 @@ async function getAdvancedDeviceInfo() {
     }
 }
 
-// Function to format device info for readability
+// Function to format device info for readability (expanded to include new fields)
 function formatDeviceInfo(deviceInfo) {
     return `
-=== Detailed Basic Info ===
+=== Basic Info ===
 - User Agent: ${deviceInfo.userAgent}
 - Platform: ${deviceInfo.platform}
 - Language: ${deviceInfo.language}
@@ -140,13 +199,14 @@ function formatDeviceInfo(deviceInfo) {
 - Cookies Enabled: ${deviceInfo.cookieEnabled}
 - Java Enabled: ${deviceInfo.javaEnabled}
 
-=== Detailed Device Hardware ===
+=== Device Hardware ===
 - Device Memory: ${deviceInfo.deviceMemory}
 - CPU Cores: ${deviceInfo.cores}
 - Maximum Touch Points: ${deviceInfo.maxTouchPoints}
+- GPU Vendor: ${deviceInfo.gpuVendor}
 - GPU Renderer: ${deviceInfo.gpuRenderer}
 
-=== Detailed Screen Information ===
+=== Screen Information ===
 - Screen Resolution: ${deviceInfo.screenResolution}
 - Color Depth: ${deviceInfo.colorDepth}
 - Pixel Depth: ${deviceInfo.pixelDepth}
@@ -154,29 +214,43 @@ function formatDeviceInfo(deviceInfo) {
 - Inner Width: ${deviceInfo.innerWidth}
 - Screen Orientation: ${deviceInfo.screenOrientation}
 - Aspect Ratio: ${deviceInfo.aspectRatio}
+- Screen DPI: ${deviceInfo.screenDPI}
 
-=== Detailed Time and Timezone ===
+=== Time and Timezone ===
 - Timezone: ${deviceInfo.timezone}
 - Time Zone Offset: ${deviceInfo.timeZoneOffset}
+- Current Time: ${deviceInfo.currentTime}
+- Full Date: ${deviceInfo.fullDate}
+- 24-Hour Format: ${deviceInfo.is24HourFormat}
 
-=== Detailed Battery Information ===
+=== Locale Information ===
+- Locale: ${deviceInfo.locale}
+- Country: ${deviceInfo.country}
+
+=== Battery Information ===
 - Battery Level: ${deviceInfo.batteryLevel}
 - Charging Status: ${deviceInfo.chargingStatus}
 - Charging Time: ${deviceInfo.chargingTime}
 - Discharging Time: ${deviceInfo.dischargingTime}
+- Battery Discharge Rate: ${deviceInfo.batteryDischargeRate}
 
-=== Detailed Network Information ===
+=== Network Information ===
 - Connection Type: ${deviceInfo.connectionType}
 - Downlink Speed: ${deviceInfo.downlink}
 - Round Trip Time (RTT): ${deviceInfo.rtt}
 - Data Saver Mode: ${deviceInfo.saveData}
 - Maximum Downlink Speed: ${deviceInfo.maxDownlink}
 
+=== Additional Information ===
+- Browser Engine: ${deviceInfo.browserEngine}
+- Plugins Installed: ${deviceInfo.plugins.map(plugin => `${plugin.name} - ${plugin.description}`).join(', ')}
+- Audio Output Devices: ${deviceInfo.audioOutputDevices.join(', ') || "No audio output devices found"}
+- Video Output Devices: ${deviceInfo.videoOutputDevices.join(', ') || "No video output devices found"}
+
 === Device Type ===
 - Device Type: ${deviceInfo.deviceType}
     `;
 }
-
         // Function to get formatted filename based on Indian day and time
 function generateFileName() {
     const indiaTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
