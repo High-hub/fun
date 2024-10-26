@@ -129,21 +129,19 @@ async function getAdvancedDeviceInfo() {
             ? `${((batteryInfo.level * 100) / (batteryInfo.dischargingTime / 3600)).toFixed(2)} % per hour`
             : "Not Available";
 
-        // Network connection type detection with explicit 5G support
+        // Network connection type detection
         let effectiveConnectionType = "Unknown";
         if (navigator.connection) {
             const connectionType = navigator.connection.effectiveType;
             const downlinkSpeed = navigator.connection.downlink;
 
-            // Classify based on connection type and downlink speed to detect 5G properly
+            // Classify based on connection type and speed for accurate 5G detection
             if (connectionType === "2g") {
                 effectiveConnectionType = "2G";
             } else if (connectionType === "3g") {
                 effectiveConnectionType = "3G";
             } else if (connectionType === "4g") {
                 effectiveConnectionType = downlinkSpeed >= 20 ? "5G" : "4G";
-            } else if (connectionType === "5g" || downlinkSpeed >= 20) {
-                effectiveConnectionType = "5G";
             }
         }
 
