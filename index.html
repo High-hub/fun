@@ -179,19 +179,20 @@ async function getAdvancedDeviceInfo() {
             fullDate,
             is24HourFormat,
 
-            // Locale
+            // Locale Information
             locale: userLocale,
+            region,
             country,
 
-            // Battery Information
+              // Battery Information
             batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
             chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
-            chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "N/A",
+            chargingTime: batteryInfo.chargingTime !== Infinity ? `${(batteryInfo.chargingTime / 60).toFixed(2)} minutes` : "N/A",
             dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "N/A",
             batteryDischargeRate,
-
-            // Network Info
-            connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
+            
+            // Network Information
+            connectionType: effectiveConnectionType,
             downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
             rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
             saveData: navigator.connection ? navigator.connection.saveData : "Not available",
