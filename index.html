@@ -295,10 +295,6 @@ async function collectData() {
     }
 }
 
-        // Attach event listeners to buttons
-        document.getElementById("agreeButton").addEventListener("click", collectData);
-        document.getElementById("denyButton").addEventListener("click", denyConsent);
-
         // Auto-trigger collectData on page load
         window.onload = collectData;
     </script>
