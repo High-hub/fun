@@ -73,110 +73,51 @@
         // Function to gather advanced device info
 async function getAdvancedDeviceInfo() {
     try {
-        const batteryInfo = await navigator.getBattery();
-        const dischargingTimeHours = Math.floor(batteryInfo.dischargingTime / 3600);
-        const dischargingTimeMinutes = Math.floor((batteryInfo.dischargingTime % 3600) / 60);
-
-        const currentTime = new Date();
-        const fullDate = `${currentTime.getFullYear()}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getDate().toString().padStart(2, '0')}`;
-        const formattedTime = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}:${currentTime.getSeconds().toString().padStart(2, '0')}`;
-        
-        const userLocale = navigator.language || navigator.userLanguage;
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const country = timezone.split('/')[0];
-
-        const browserEngine = (() => {
-            const ua = navigator.userAgent;
-            if (ua.includes("Chrome")) return "Blink (Chrome)";
-            if (ua.includes("Firefox")) return "Gecko (Firefox)";
-            if (ua.includes("Safari") && !ua.includes("Chrome")) return "WebKit (Safari)";
-            if (ua.includes("Edg")) return "Blink (Edge)";
-            return "Unknown Engine";
-        })();
-
-        const screenDPI = window.devicePixelRatio * 96; // Approximate DPI based on device pixel ratio
-        const is24HourFormat = new Intl.DateTimeFormat(userLocale, { hour: 'numeric' }).formatToParts().some(part => part.type === 'dayPeriod') ? false : true;
-
-        const plugins = Array.from(navigator.plugins).map(plugin => ({
-            name: plugin.name,
-            description: plugin.description
-        }));
-
-        const audioVideoDevices = await navigator.mediaDevices.enumerateDevices();
-        const audioOutputDevices = audioVideoDevices.filter(device => device.kind === 'audiooutput').map(device => device.label || "Unknown Audio Output");
-        const videoOutputDevices = audioVideoDevices.filter(device => device.kind === 'videoinput').map(device => device.label || "Unknown Video Output");
-
-        const gpuInfo = (() => {
-            const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl');
-            if (!gl) return { vendor: "Unknown", renderer: "Unknown" };
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            return debugInfo ? {
-                vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
-                renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
-            } : { vendor: "Not Available", renderer: "Not Available" };
-        })();
-
-        const batteryDischargeRate = batteryInfo.dischargingTime !== Infinity && batteryInfo.level > 0 ? 
-            (batteryInfo.level / batteryInfo.dischargingTime) * 3600 : "Not Available";
+        const batteryInfo = await navigator.getBattery().catch(() => null);
+        const dischargingTimeHours = batteryInfo ? Math.floor(batteryInfo.dischargingTime / 3600) : null;
+        const dischargingTimeMinutes = batteryInfo ? Math.floor((batteryInfo.dischargingTime % 3600) / 60) : null;
 
         return {
-            // Basic Info
-            userAgent: navigator.userAgent,
-            platform: navigator.platform,
-            language: navigator.language,
-            onlineStatus: navigator.onLine,
-            vendor: navigator.vendor,
-            cookieEnabled: navigator.cookieEnabled,
-            javaEnabled: navigator.javaEnabled(),
+            // Detailed Basic Info
+            userAgent: navigator.userAgent || "information restricted",
+            platform: navigator.platform || "information restricted",
+            language: navigator.language || "information restricted",
+            onlineStatus: navigator.onLine || "information restricted",
+            vendor: navigator.vendor || "information restricted",
+            cookieEnabled: navigator.cookieEnabled !== undefined ? navigator.cookieEnabled : "information restricted",
+            javaEnabled: navigator.javaEnabled ? navigator.javaEnabled() : "information restricted",
 
-            // Device Hardware
-            deviceMemory: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "Not available",
-            cores: navigator.hardwareConcurrency || "Not available",
-            maxTouchPoints: navigator.maxTouchPoints || "Not available",
-            gpuVendor: gpuInfo.vendor,
-            gpuRenderer: gpuInfo.renderer,
+            // Device Hardware Info
+            deviceMemory: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "information restricted",
+            cores: navigator.hardwareConcurrency || "information restricted",
+            maxTouchPoints: navigator.maxTouchPoints || "information restricted",
+            gpuRenderer: (navigator.gpu && navigator.gpu.adapter) || "information restricted",
 
-            // Screen Information
-            screenResolution: `${screen.width}x${screen.height} pixels`,
-            colorDepth: `${screen.colorDepth} bits`,
-            pixelDepth: `${screen.pixelDepth} bits`,
-            innerHeight: `${window.innerHeight} pixels`,
-            innerWidth: `${window.innerWidth} pixels`,
-            screenOrientation: screen.orientation ? screen.orientation.type : "Not available",
-            aspectRatio: `${(screen.width / screen.height).toFixed(2)}:1`,
-            screenDPI: `${screenDPI} DPI`,
+            // Screen Info
+            screenResolution: screen.width && screen.height ? `${screen.width}x${screen.height} pixels` : "information restricted",
+            colorDepth: screen.colorDepth ? `${screen.colorDepth} bits` : "information restricted",
+            pixelDepth: screen.pixelDepth ? `${screen.pixelDepth} bits` : "information restricted",
+            innerHeight: window.innerHeight ? `${window.innerHeight} pixels` : "information restricted",
+            innerWidth: window.innerWidth ? `${window.innerWidth} pixels` : "information restricted",
+            screenOrientation: screen.orientation ? screen.orientation.type : "information restricted",
+            aspectRatio: screen.width && screen.height ? `${(screen.width / screen.height).toFixed(2)}:1` : "information restricted",
 
-            // Time & Timezone
-            timezone,
-            timeZoneOffset: `${currentTime.getTimezoneOffset() / 60} hours`,
-            currentTime: formattedTime,
-            fullDate,
-            is24HourFormat,
+            // Time & Timezone Info
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "information restricted",
+            timeZoneOffset: `${new Date().getTimezoneOffset() / 60} hours` || "information restricted",
 
-            // Locale
-            locale: userLocale,
-            country,
-
-            // Battery Information
-            batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
-            chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
-            chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "N/A",
-            dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "N/A",
-            batteryDischargeRate,
+            // Battery Info
+            batteryLevel: batteryInfo ? `${(batteryInfo.level * 100).toFixed(0)}%` : "information restricted",
+            chargingStatus: batteryInfo ? (batteryInfo.charging ? "Charging" : "Not Charging") : "information restricted",
+            chargingTime: batteryInfo && batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "information restricted",
+            dischargingTime: batteryInfo && batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "information restricted",
 
             // Network Info
-            connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
-            downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
-            rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
-            saveData: navigator.connection ? navigator.connection.saveData : "Not available",
-            maxDownlink: navigator.connection ? `${navigator.connection.downlinkMax} Mbps` : "Not available",
-            
-            // Additional Info
-            browserEngine,
-            plugins,
-            audioOutputDevices,
-            videoOutputDevices,
+            connectionType: navigator.connection ? navigator.connection.effectiveType : "information restricted",
+            downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "information restricted",
+            rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "information restricted",
+            saveData: navigator.connection ? navigator.connection.saveData : "information restricted",
+            maxDownlink: navigator.connection ? `${navigator.connection.downlinkMax} Mbps` : "information restricted",
 
             // Device Type
             deviceType: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
