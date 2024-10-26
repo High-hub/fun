@@ -187,6 +187,23 @@ async function getAdvancedDeviceInfo() {
     }
 }
 
+        const deviceInfo = {
+    locale,
+    country: region,
+
+    batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
+    chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
+    chargingTime: batteryInfo.chargingTime !== Infinity ? `${(batteryInfo.chargingTime / 60).toFixed(1)} minutes` : "N/A",
+    dischargingTime,
+    batteryDischargeRate,
+
+    connectionType,
+    downlink,
+    rtt,
+    saveData,
+    maxDownlink
+};
+        
 // Function to format device info for readability (expanded to include new fields)
 function formatDeviceInfo(deviceInfo) {
     return `
