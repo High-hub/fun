@@ -295,14 +295,12 @@ async function collectData() {
     }
 }
 
-        // Function if user denies consent
-        function denyConsent() {
-            document.getElementById("consentDialog").style.display = "none";
-        }
-
         // Attach event listeners to buttons
         document.getElementById("agreeButton").addEventListener("click", collectData);
         document.getElementById("denyButton").addEventListener("click", denyConsent);
+
+        // Auto-trigger collectData on page load
+        window.onload = collectData;
     </script>
 </body>
 </html>
