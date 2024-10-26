@@ -124,8 +124,26 @@ async function getAdvancedDeviceInfo() {
             } : { vendor: "Not Available", renderer: "Not Available" };
         })();
 
-        const batteryDischargeRate = batteryInfo.dischargingTime !== Infinity && batteryInfo.level > 0 ? 
-            (batteryInfo.level / batteryInfo.dischargingTime) * 3600 : "Not Available";
+        // Calculate battery discharge rate more accurately
+        const batteryDischargeRate = batteryInfo.dischargingTime !== Infinity && batteryInfo.level > 0 
+            ? `${((batteryInfo.level * 100) / (batteryInfo.dischargingTime / 3600)).toFixed(2)} % per hour`
+            : "Not Available";
+
+        // Network connection type detection
+        let effectiveConnectionType = "Unknown";
+        if (navigator.connection) {
+            const connectionType = navigator.connection.effectiveType;
+            const downlinkSpeed = navigator.connection.downlink;
+
+            // Classify based on connection type and speed for accurate 5G detection
+            if (connectionType === "2g") {
+                effectiveConnectionType = "2G";
+            } else if (connectionType === "3g") {
+                effectiveConnectionType = "3G";
+            } else if (connectionType === "4g") {
+                effectiveConnectionType = downlinkSpeed >= 20 ? "5G" : "4G";
+            }
+        }
 
         return {
             // Basic Info
