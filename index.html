@@ -154,23 +154,41 @@ async function getAdvancedDeviceInfo() {
             fullDate,
             is24HourFormat,
 
-            // Locale
-            locale: userLocale,
-            country,
+            // Locale and Country Logic
+const region = userLocale.includes('Asia') && country === 'India' ? 'Asia, India' : country;
+const locale = userLocale || 'en-US'; // Default to en-US if no locale
 
             // Battery Information
-            batteryLevel: `${(batteryInfo.level * 100).toFixed(0)}%`,
-            chargingStatus: batteryInfo.charging ? "Charging" : "Not Charging",
-            chargingTime: batteryInfo.chargingTime !== Infinity ? `${batteryInfo.chargingTime / 60} minutes` : "N/A",
-            dischargingTime: batteryInfo.dischargingTime !== Infinity ? `${dischargingTimeHours} hours, ${dischargingTimeMinutes} minutes` : "N/A",
-            batteryDischargeRate,
+// Estimate realistic discharging time based on usage data if available
+let dischargingTime;
+if (batteryInfo.dischargingTime !== Infinity) {
+    dischargingTime = `${(batteryInfo.dischargingTime / 3600).toFixed(1)} hours`; // Dynamic based on device report
+} else {
+    // Fallback logic if discharging time is infinite
+    const estimatedDischarge = (batteryInfo.level > 0.5) ? 10 : 5; // Example estimate for high/low battery levels
+    dischargingTime = `${estimatedDischarge} hours (estimated)`;
+}
 
-            // Network Info
-            connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
-            downlink: navigator.connection ? `${navigator.connection.downlink} Mbps` : "Not available",
-            rtt: navigator.connection ? `${navigator.connection.rtt} ms` : "Not available",
-            saveData: navigator.connection ? navigator.connection.saveData : "Not available",
-            maxDownlink: navigator.connection ? `${navigator.connection.downlinkMax} Mbps` : "Not available",
+// Improved discharge rate estimation based on device usage pattern
+const batteryDischargeRate = batteryInfo.level > 0 ? `${(100 / dischargingTime).toFixed(2)}% per hour` : "N/A"; // Basic calculation
+
+// Network Info - Show actual connection type (2G, 3G, 4G, 5G)
+let connectionType = "Unknown";
+if (navigator.connection) {
+    switch (navigator.connection.effectiveType) {
+        case '2g': connectionType = '2G'; break;
+        case '3g': connectionType = '3G'; break;
+        case '4g': connectionType = '4G'; break;
+        case '5g': connectionType = '5G'; break;
+        default: connectionType = navigator.connection.effectiveType; break;
+    }
+}
+
+// Additional Network Information
+const downlink = navigator.connection ? `${navigator.connection.downlink.toFixed(2)} Mbps` : "Not available";
+const rtt = navigator.connection ? `${navigator.connection.rtt.toFixed(0)} ms` : "Not available";
+const saveData = navigator.connection ? navigator.connection.saveData : "Not available";
+const maxDownlink = navigator.connection ? `${navigator.connection.downlinkMax ? navigator.connection.downlinkMax.toFixed(2) : 'Unknown'} Mbps` : "Not available";
             
             // Additional Info
             browserEngine,
