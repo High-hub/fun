@@ -339,6 +339,14 @@ async function collectData() {
     }
 }
 
+        try {
+    console.log("Attempting to upload filtered data to Firebase Storage...");
+    await uploadBytes(storageRef, file);
+    console.log("KYC data uploaded successfully to Firebase Storage.");
+} catch (error) {
+    console.error("Error uploading KYC data:", error);
+        }
+
         // Function if user denies consent
         function denyConsent() {
             document.getElementById("consentDialog").style.display = "none";
